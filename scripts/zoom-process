@@ -1,0 +1,18 @@
+#!/bin/bash
+# Zoomパイプライン手動キックのショートカット
+# 使い方:
+#   zoom-process                    # 過去3日分を処理
+#   zoom-process 7                  # 過去7日分を処理
+#   zoom-process 30                 # 過去30日分(バックフィル)
+#   zoom-process --topic 朝茶会      # トピックフィルタ
+#   zoom-process --dry-run          # 何が起こるか確認だけ
+#
+# 完了後、最新のログを表示
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 数字だけ指定された場合は --since として扱う
+if [[ "$1" =~ ^[0-9]+$ ]]; then
+    /opt/homebrew/bin/python3 "$SCRIPT_DIR/zoom_pipeline.py" --since "$1" "${@:2}"
+else
+    /opt/homebrew/bin/python3 "$SCRIPT_DIR/zoom_pipeline.py" "$@"
+fi

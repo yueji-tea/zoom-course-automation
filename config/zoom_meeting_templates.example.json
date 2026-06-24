@@ -1,0 +1,88 @@
+{
+  "_comment": [
+    "Zoom会議のテンプレート定義。",
+    "あなたの講座・コミュニティ・面談に合わせて自由に追加・編集してください。",
+    "",
+    "各テンプレートのフィールド:",
+    "  topic_prefix      : 会議トピック先頭に付ける名前(例: 茶養5期 → 「茶養5期 Day5 ○○」)",
+    "  duration          : デフォルト所要時間(分)",
+    "  timezone          : Asia/Tokyo, Asia/Hong_Kong, America/New_York 等",
+    "  auto_recording    : cloud(クラウド録画) / local(ローカル録画) / none(録画なし)",
+    "  discord_webhook_env : Discord告知投稿先 Webhook の環境変数名(.env のキー名)。null で告知なし",
+    "  discord_channel_label : Discord告知時のチャンネル表示名(ログ・確認用)",
+    "  discord_guild_id  : Discord Scheduled Event を作成するサーバーID。null で Event 作成なし",
+    "  description       : テンプレ用途の説明(ユーザー向け)",
+    "",
+    "default_settings:",
+    "  会議のデフォルト設定。Zoom設定 → ミーティング設定 と同じ意味のフラグ。",
+    "  全テンプレ共通で適用される。",
+    "",
+    "使い方:",
+    "  このファイルを config/zoom_meeting_templates.json として複製して編集",
+    "    cp config/zoom_meeting_templates.example.json config/zoom_meeting_templates.json"
+  ],
+  "templates": {
+    "course1": {
+      "topic_prefix": "○○講座",
+      "duration": 90,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": "DISCORD_WEBHOOK_COURSE_NOTIFY",
+      "discord_channel_label": "○○講座サーバー",
+      "discord_guild_id": "YOUR_DISCORD_GUILD_ID_HERE",
+      "description": "受講者向け講座セッション(例: 90分)"
+    },
+    "community": {
+      "topic_prefix": "○○コミュニティ",
+      "duration": 60,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": "DISCORD_WEBHOOK_COMMUNITY_NOTIFY",
+      "discord_channel_label": "○○コミュニティ",
+      "discord_guild_id": "YOUR_DISCORD_GUILD_ID_HERE",
+      "description": "継続コミュニティMTG(例: 60分)"
+    },
+    "weekly_meetup": {
+      "topic_prefix": "週次MTG",
+      "duration": 30,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": null,
+      "description": "毎週の短い集まり(告知不要・30分)"
+    },
+    "personal": {
+      "topic_prefix": "個別面談",
+      "duration": 60,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": null,
+      "description": "個別面談・コーチング(YouTube自動除外対象)"
+    },
+    "event": {
+      "topic_prefix": "イベント",
+      "duration": 180,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": null,
+      "description": "オンラインイベント(例: 3時間)"
+    },
+    "freeform": {
+      "topic_prefix": "",
+      "duration": 60,
+      "timezone": "Asia/Tokyo",
+      "auto_recording": "cloud",
+      "discord_webhook_env": null,
+      "description": "自由形式(プレフィクスなし)"
+    }
+  },
+  "default_settings": {
+    "host_video": false,
+    "participant_video": false,
+    "mute_upon_entry": true,
+    "waiting_room": true,
+    "join_before_host": false,
+    "meeting_authentication": false,
+    "approval_type": 2,
+    "audio": "both"
+  }
+}

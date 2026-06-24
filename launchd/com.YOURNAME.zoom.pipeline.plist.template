@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Zoom録画パイプライン 自動実行(毎朝)
+
+  使い方:
+  1. このファイルをコピー: ~/Library/LaunchAgents/com.YOURNAME.zoom.pipeline.plist
+  2. YOURNAME を自分の Mac ユーザー名に置換
+  3. YOUR_SCRIPTS_DIR を実際のスクリプト配置先(例: /Users/YOURUSER/zoom-course-automation/scripts)に置換
+  4. Hour / Minute を希望時刻に変更(下記は朝7:30 ローカル時刻)
+  5. launchctl load ~/Library/LaunchAgents/com.YOURNAME.zoom.pipeline.plist
+  6. 確認: launchctl list | grep zoom.pipeline
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.YOURNAME.zoom.pipeline</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/caffeinate</string>
+        <string>-i</string>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>YOUR_SCRIPTS_DIR/zoom_pipeline.py</string>
+        <string>--since</string>
+        <string>3</string>
+    </array>
+
+    <!-- 毎朝 7:30 ローカル時刻に実行 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>7</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>YOUR_LOG_DIR/launchd_pipeline.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>YOUR_LOG_DIR/launchd_pipeline.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/YOURNAME</string>
+    </dict>
+
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

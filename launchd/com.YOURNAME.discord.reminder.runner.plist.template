@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Discord リマインダー実行ランナー(毎分起動)
+
+  使い方:
+  1. このファイルをコピー: ~/Library/LaunchAgents/com.YOURNAME.discord.reminder.runner.plist
+  2. YOURNAME を自分の Mac ユーザー名に置換
+  3. YOUR_SCRIPTS_DIR を実際のスクリプト配置先に置換
+  4. launchctl load ~/Library/LaunchAgents/com.YOURNAME.discord.reminder.runner.plist
+  5. 確認: launchctl list | grep discord.reminder.runner
+
+  動作:
+  - 毎60秒に discord_reminder_runner.py を実行
+  - pending な reminder があれば送信、なければサイレント終了
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.YOURNAME.discord.reminder.runner</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>YOUR_SCRIPTS_DIR/discord_reminder_runner.py</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>YOUR_LOG_DIR/discord_reminder_runner.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>YOUR_LOG_DIR/discord_reminder_runner.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/YOURNAME</string>
+    </dict>
+</dict>
+</plist>

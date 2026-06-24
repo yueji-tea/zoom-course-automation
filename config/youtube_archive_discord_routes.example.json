@@ -1,0 +1,40 @@
+{
+  "_comment": [
+    "YouTube限定公開アーカイブのDiscord投稿先振り分けルール。",
+    "Zoom録画 → YouTube アップ後、トピック名でルートを判定し、該当アーカイブチャンネルに案内を投稿する。",
+    "",
+    "各ルートのフィールド:",
+    "  name              : このルートの表示名(ログ用)",
+    "  webhook_env       : 投稿先 Webhook の環境変数名(.env のキー名)",
+    "  patterns          : トピック名にマッチさせるキーワード(部分一致)or 正規表現",
+    "                       (例: 「茶養5期」が含まれるトピックがマッチ)",
+    "",
+    "fallback_webhook_env: どのルートにもマッチしなかった時のフォールバック先(空文字でなしを意味)",
+    "unmatched_policy   : skip(マッチしないなら静かに投稿スキップ) / error(エラーで停止)",
+    "",
+    "使い方:",
+    "  このファイルを config/youtube_archive_discord_routes.json として複製して編集",
+    "    cp config/youtube_archive_discord_routes.example.json config/youtube_archive_discord_routes.json"
+  ],
+  "routes": [
+    {
+      "name": "○○講座アーカイブ",
+      "webhook_env": "DISCORD_WEBHOOK_COURSE_ARCHIVE",
+      "patterns": [
+        "○○講座",
+        "○○.*講座",
+        "講座.*○○"
+      ]
+    },
+    {
+      "name": "○○コミュニティ",
+      "webhook_env": "DISCORD_WEBHOOK_COMMUNITY_ARCHIVE",
+      "patterns": [
+        "○○コミュニティ",
+        "コミュニティ"
+      ]
+    }
+  ],
+  "fallback_webhook_env": "",
+  "unmatched_policy": "skip"
+}

@@ -1,0 +1,42 @@
+# 個人情報・秘密
+.env
+.env.local
+.env.production
+*.token
+*.key
+secrets/
+
+# ローカル設定(ユーザー固有)
+config/zoom_meeting_templates.json
+config/youtube_archive_discord_routes.json
+
+# launchd plist 実体(テンプレートのみ含める)
+launchd/com.*.plist
+!launchd/*.template
+
+# 録画データ(各ユーザーのMacにだけ存在)
+zoom_recordings/
+_logs/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# バックアップ
+*.bak
+*.backup
+
+# テスト
+discord_reminders_pending.json
