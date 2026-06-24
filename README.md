@@ -74,7 +74,7 @@
 
 ```bash
 # 1. クローン
-git clone https://github.com/o8o67184964-nao/zoom-course-automation.git
+git clone https://github.com/yueji-tea/zoom-course-automation.git
 cd zoom-course-automation
 
 # 2. 対話セットアップ(.env を自動生成)
