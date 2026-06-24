@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zoom-course-automation — オンライン講座のZoom配信フル自動化</title>
+<meta name="description" content="講座運営者のためのZoom配信自動化パッケージ。Zoom会議作成→告知→リマインダー→録画DL→要約→YouTube限定公開→アーカイブ案内まで、AIアシスタントに「お願い」するだけで全部自動。MITライセンス無料。">
+<meta property="og:title" content="zoom-course-automation">
+<meta property="og:description" content="講座運営者のためのZoom配信フル自動化パッケージ。AIアシスタントに頼むだけで全自動。">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@500;700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ベース:白多め、上品な和の配色 */
+  --cream-bg: #ffffff;
+  --cream-deep: #faf6ef;
+  --cream-warm: #fdfaf3;
+  --tea-paper: #ffffff;
+  --brown-deep: #3a2c25;
+  --brown-mid: #6e5d54;
+  --brown-soft: #998878;
+  --matcha-deep: #5d7a4f;
+  --matcha-mid: #7a9968;
+  --matcha-soft: #c8dbb3;
+  --plum-deep: #c8505b;
+  --plum-mid: #d96a72;
+  --plum-soft: #f4d0d0;
+  --accent-orange: #d96a72;
+  --accent-clay: #c8505b;
+  --text: #2a221c;
+  --text-mute: #7a6b5f;
+  --line: #ece4d4;
+  --code-bg: #2d2620;
+  --code-text: #f5eee0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: "Noto Sans JP", -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--cream-bg);
+  line-height: 1.85;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 500;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+h1, h2, h3, h4 {
+  font-family: "Noto Serif JP", serif;
+  letter-spacing: 0.04em;
+  font-weight: 900;
+}
+a { color: var(--brown-deep); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: "SF Mono", "Menlo", monospace; font-size: 0.9em; background: var(--cream-deep); padding: 2px 6px; border-radius: 4px; }
+
+/* --- ヘッダー --- */
+.header {
+  background: rgba(250, 245, 237, 0.92);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.brand {
+  font-family: "Noto Serif JP", serif;
+  font-weight: 900;
+  font-size: 17px;
+  color: var(--brown-deep);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--matcha-deep);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+.nav { display: flex; gap: 28px; align-items: center; }
+.nav a { font-size: 14px; color: var(--brown-mid); font-weight: 700; }
+.nav a:hover { color: var(--brown-deep); text-decoration: none; }
+.nav .github-btn {
+  background: var(--brown-deep);
+  color: var(--cream-bg);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.nav .github-btn:hover { background: var(--text); text-decoration: none; }
+@media (max-width: 720px) {
+  .nav a:not(.github-btn) { display: none; }
+}
+
+/* --- 茶葉SVG装飾 --- */
+.leaf-decoration {
+  display: inline-block;
+  vertical-align: middle;
+  color: var(--matcha-deep);
+}
+
+/* --- Hero --- */
+.hero {
+  padding: 100px 0 120px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 30%, rgba(200, 219, 179, 0.30) 0%, transparent 45%),
+    radial-gradient(circle at 85% 70%, rgba(244, 208, 208, 0.30) 0%, transparent 45%),
+    var(--cream-bg);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 60px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M30 100 Q 70 30, 120 60 T 180 100 Q 160 130, 100 140 T 30 100' fill='%23c8dbb3' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: rotate(-15deg);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: 40px;
+  right: -60px;
+  width: 240px;
+  height: 240px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M30 100 Q 70 30, 120 60 T 180 100 Q 160 130, 100 140 T 30 100' fill='%23f4d0d0' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: rotate(25deg);
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-eyebrow {
+  font-family: "Caveat", "Noto Serif JP", cursive;
+  font-size: 24px;
+  color: var(--accent-orange);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+.hero h1 {
+  font-size: 60px;
+  line-height: 1.35;
+  margin-bottom: 32px;
+  color: var(--brown-deep);
+  letter-spacing: 0.05em;
+}
+.hero h1 .accent {
+  color: var(--accent-clay);
+  position: relative;
+  display: inline-block;
+}
+.hero h1 .accent::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: rgba(217, 120, 66, 0.25);
+  z-index: -1;
+}
+.hero .lead {
+  font-size: 19px;
+  color: var(--brown-mid);
+  margin-bottom: 16px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 500;
+}
+.hero .sub-lead {
+  font-size: 16px;
+  color: var(--text-mute);
+  margin-bottom: 50px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+.btn {
+  padding: 16px 36px;
+  border-radius: 40px;
+  font-size: 15px;
+  font-weight: 900;
+  transition: all 0.25s;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+.btn-primary {
+  background: var(--brown-deep);
+  color: var(--cream-bg);
+  box-shadow: 0 4px 16px rgba(61, 40, 23, 0.25);
+}
+.btn-primary:hover { background: var(--accent-clay); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201, 95, 71, 0.35); text-decoration: none; }
+.btn-secondary {
+  background: var(--tea-paper);
+  color: var(--brown-deep);
+  border: 2px solid var(--brown-deep);
+}
+.btn-secondary:hover { background: var(--brown-deep); color: var(--cream-bg); text-decoration: none; }
+
+.highlight-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 32px 0; }
+.highlight-pill {
+  background: var(--tea-paper);
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 13px;
+  color: var(--brown-mid);
+  border: 1px solid var(--line);
+  font-weight: 700;
+}
+.highlight-pill .em { color: var(--accent-clay); font-weight: 900; }
+
+@media (max-width: 720px) {
+  .hero { padding: 60px 0 70px; }
+  .hero h1 { font-size: 36px; }
+  .hero .lead { font-size: 17px; }
+  .btn { padding: 14px 26px; font-size: 14px; }
+}
+
+/* --- セクション共通 --- */
+section { padding: 110px 0; position: relative; }
+section.bg-paper { background: var(--tea-paper); }
+section.bg-cream-deep { background: var(--cream-deep); }
+section.bg-cream-warm { background: var(--cream-warm); }
+
+.section-head {
+  text-align: center;
+  margin-bottom: 70px;
+}
+.section-eyebrow {
+  font-family: "Caveat", "Noto Serif JP", cursive;
+  font-size: 26px;
+  color: var(--accent-orange);
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: block;
+}
+.section-title {
+  font-size: 42px;
+  color: var(--brown-deep);
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+.section-title-decorated {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.section-title-decorated::before,
+.section-title-decorated::after {
+  content: "";
+  width: 40px;
+  height: 1.5px;
+  background: var(--brown-soft);
+}
+.section-lead {
+  max-width: 660px;
+  margin: 0 auto;
+  color: var(--text-mute);
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+@media (max-width: 720px) {
+  section { padding: 70px 0; }
+  .section-title { font-size: 28px; }
+  .section-head { margin-bottom: 50px; }
+}
+
+/* --- フローセクション --- */
+.flow-wrap {
+  background: var(--tea-paper);
+  border-radius: 24px;
+  padding: 56px 48px;
+  box-shadow: 0 12px 50px rgba(61, 40, 23, 0.08);
+  border: 1px solid var(--line);
+}
+.flow-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+  padding: 28px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.flow-stage:last-child { border-bottom: none; padding-bottom: 0; }
+.flow-stage:first-child { padding-top: 0; }
+.flow-num {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--matcha-deep) 0%, var(--matcha-mid) 100%);
+  color: var(--cream-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 26px;
+  flex-shrink: 0;
+  font-family: "Noto Serif JP", serif;
+  box-shadow: 0 6px 16px rgba(58, 90, 62, 0.25);
+}
+.flow-content h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: var(--brown-deep);
+  font-weight: 900;
+}
+.flow-content p { color: var(--text-mute); font-size: 15px; line-height: 1.9; }
+.flow-content .tag {
+  display: inline-block;
+  background: var(--cream-deep);
+  color: var(--brown-mid);
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 6px;
+  margin-top: 10px;
+}
+@media (max-width: 720px) {
+  .flow-wrap { padding: 32px 22px; }
+  .flow-stage { flex-direction: column; gap: 14px; }
+  .flow-num { width: 52px; height: 52px; font-size: 22px; }
+}
+
+/* --- ペルソナ --- */
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+}
+.persona-card {
+  background: var(--tea-paper);
+  padding: 40px 32px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  text-align: center;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.persona-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(61, 40, 23, 0.1);
+}
+.persona-card .icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  background: var(--cream-deep);
+  border-radius: 50%;
+  margin-bottom: 24px;
+}
+.persona-card h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--brown-deep);
+  font-weight: 900;
+}
+.persona-card p {
+  font-size: 14px;
+  color: var(--text-mute);
+  line-height: 1.85;
+}
+
+/* --- 機能カード --- */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 24px;
+}
+.feature-card {
+  background: var(--tea-paper);
+  padding: 36px 30px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  position: relative;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(61, 40, 23, 0.1);
+}
+.feature-card .icon {
+  font-size: 36px;
+  margin-bottom: 20px;
+  display: inline-block;
+  background: linear-gradient(135deg, var(--matcha-soft) 0%, var(--cream-deep) 100%);
+  width: 64px;
+  height: 64px;
+  text-align: center;
+  line-height: 64px;
+  border-radius: 18px;
+}
+.feature-card h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--brown-deep);
+  font-weight: 900;
+}
+.feature-card p { font-size: 14px; color: var(--text-mute); line-height: 1.85; }
+.feature-card code {
+  background: var(--cream-deep);
+  color: var(--brown-deep);
+  font-size: 12px;
+}
+
+/* --- Usage / Chat --- */
+.chat-example {
+  background: var(--tea-paper);
+  border-radius: 24px;
+  padding: 40px;
+  border: 1px solid var(--line);
+  max-width: 820px;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);
+}
+.chat-msg {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.chat-msg:last-child { margin-bottom: 0; }
+.chat-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+.chat-msg.user .chat-avatar { background: var(--accent-orange); color: white; }
+.chat-msg.ai .chat-avatar { background: var(--matcha-deep); color: var(--cream-bg); }
+.chat-bubble {
+  background: var(--cream-deep);
+  padding: 16px 22px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.85;
+  flex: 1;
+  color: var(--text);
+}
+.chat-msg.ai .chat-bubble { background: rgba(168, 196, 160, 0.2); }
+.chat-bubble strong { color: var(--brown-deep); font-weight: 900; }
+.chat-bubble .check { color: var(--matcha-deep); font-weight: 700; }
+
+.code-block {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 32px;
+  border-radius: 16px;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 14px;
+  line-height: 1.85;
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 820px;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(61, 40, 23, 0.15);
+}
+.code-block .comment { color: #b8a89a; }
+.code-block .prompt { color: var(--accent-orange); }
+.code-block .keyword { color: #f2c97d; }
+
+.usage-divider {
+  text-align: center;
+  margin: 50px 0 32px;
+  color: var(--text-mute);
+  font-size: 14px;
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  color: var(--brown-soft);
+}
+
+/* --- セットアップガイド --- */
+.setup-list {
+  max-width: 820px;
+  margin: 0 auto;
+  background: var(--tea-paper);
+  border-radius: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);
+}
+.setup-item {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.setup-item:last-child { border-bottom: none; }
+.setup-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cream-deep), var(--cream-warm));
+  color: var(--accent-clay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 15px;
+  flex-shrink: 0;
+  font-family: "Noto Serif JP", serif;
+  border: 1.5px solid var(--accent-clay);
+}
+.setup-text { flex: 1; }
+.setup-text h4 {
+  font-size: 16px;
+  color: var(--brown-deep);
+  margin-bottom: 4px;
+  font-weight: 900;
+}
+.setup-text p { font-size: 13px; color: var(--text-mute); line-height: 1.65; }
+.setup-time {
+  font-size: 12px;
+  color: var(--accent-clay);
+  background: var(--tea-paper);
+  padding: 6px 14px;
+  border-radius: 14px;
+  white-space: nowrap;
+  font-weight: 700;
+  border: 1px solid var(--line);
+}
+
+/* --- 技術スタック --- */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 950px;
+  margin: 0 auto;
+}
+.tech-item {
+  text-align: center;
+  padding: 28px 18px;
+  background: var(--tea-paper);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  transition: transform 0.2s;
+}
+.tech-item:hover { transform: translateY(-2px); }
+.tech-item .icon { font-size: 32px; margin-bottom: 12px; }
+.tech-item .label { font-size: 14px; font-weight: 900; color: var(--brown-deep); margin-bottom: 4px; font-family: "Noto Serif JP", serif; }
+.tech-item .desc { font-size: 12px; color: var(--text-mute); line-height: 1.6; }
+
+/* --- 大CTA --- */
+.cta-section {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(244, 208, 208, 0.5) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(200, 219, 179, 0.4) 0%, transparent 50%),
+    var(--cream-deep);
+  color: var(--text);
+  text-align: center;
+  padding: 110px 24px;
+}
+.cta-section .section-eyebrow { color: var(--plum-mid); }
+.cta-section h2 {
+  color: var(--brown-deep);
+  font-size: 42px;
+  margin-bottom: 24px;
+  letter-spacing: 0.04em;
+}
+.cta-section .cta-lead {
+  color: var(--text-mute);
+  font-size: 17px;
+  max-width: 640px;
+  margin: 0 auto 44px;
+  line-height: 1.95;
+}
+.cta-section .btn-cta {
+  background: var(--plum-deep);
+  color: white;
+  padding: 18px 44px;
+  font-size: 16px;
+  font-weight: 900;
+  border-radius: 36px;
+  display: inline-block;
+  letter-spacing: 0.05em;
+  box-shadow: 0 6px 24px rgba(200, 80, 91, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cta-section .btn-cta:hover { background: var(--plum-mid); transform: translateY(-2px); box-shadow: 0 10px 32px rgba(200, 80, 91, 0.5); text-decoration: none; }
+
+/* --- フッター --- */
+.footer {
+  background: #1f1610;
+  color: rgba(250, 245, 237, 0.7);
+  padding: 60px 24px 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.footer-brand {
+  font-family: "Noto Serif JP", serif;
+  font-weight: 900;
+  color: var(--cream-bg);
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+.footer a { color: var(--cream-bg); }
+.footer .footer-links {
+  margin-bottom: 28px;
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.footer .footer-links a:hover { color: var(--accent-orange); text-decoration: none; }
+.footer-copyright { color: rgba(250, 245, 237, 0.5); font-size: 13px; line-height: 1.85; margin-top: 16px; }
+.footer-divider {
+  width: 80px;
+  height: 1px;
+  background: rgba(250, 245, 237, 0.15);
+  margin: 24px auto;
+}
+
+/* スクロール装飾 */
+.scroll-decoration {
+  position: absolute;
+  font-family: "Caveat", cursive;
+  font-size: 100px;
+  color: rgba(61, 40, 23, 0.05);
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark">🍵</span>
+      <span>zoom-course-automation</span>
+    </div>
+    <nav class="nav">
+      <a href="#flow">機能</a>
+      <a href="#persona">対象</a>
+      <a href="#usage">使い方</a>
+      <a href="#setup">セットアップ</a>
+      <a class="github-btn" href="https://github.com/yueji-tea/zoom-course-automation" target="_blank" rel="noopener">GitHub →</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-eyebrow">~ for course owners ~</div>
+
+    <h1>
+      講座運営の<br>
+      <span class="accent">手作業</span>から、解放しよう。
+    </h1>
+
+    <p class="lead">オンライン講座のZoom配信、告知、リマインド、録画アーカイブ、YouTube限定公開、要約まで。</p>
+    <p class="sub-lead">「Zoom作って」「録画処理して」と AI アシスタントに頼むだけで、全部自動で進む macOS パッケージ。</p>
+
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://github.com/yueji-tea/zoom-course-automation" target="_blank" rel="noopener">GitHubで見る →</a>
+      <a class="btn btn-secondary" href="#flow">何ができるか見る</a>
+    </div>
+
+    <div class="highlight-row">
+      <span class="highlight-pill">★ <span class="em">完全無料</span> MITライセンス</span>
+      <span class="highlight-pill">月コスト目安 <span class="em">$5</span></span>
+      <span class="highlight-pill">セットアップ <span class="em">1〜2時間</span></span>
+      <span class="highlight-pill">日本語ガイド <span class="em">12本付き</span></span>
+    </div>
+  </div>
+</section>
+
+<section class="bg-paper" id="flow">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">what it does</span>
+      <h2 class="section-title"><span class="section-title-decorated">「全部、AIにお願いする」ワークフロー</span></h2>
+      <p class="section-lead">講座運営者の毎週の手作業を、AIアシスタントと自動化スクリプトでフルカバー。</p>
+    </div>
+
+    <div class="flow-wrap">
+
+      <div class="flow-stage">
+        <div class="flow-num">壱</div>
+        <div class="flow-content">
+          <h3>「明日19時から○○講座のZoom作って」</h3>
+          <p>AIに頼むだけ。Zoom会議自動作成 → 受講者向けチャットアプリ(Discord)に @everyone 告知投稿 → イベント登録 → 5分前リマインダーを予約 → Googleカレンダーに予定追加。<br><small style="color: var(--text-mute);">★ Discord 使ってない場合はこの段階を省略 or 他のチャットアプリ(Slack・LINE公式アカウント・Chatwork 等)に拡張可能</small></p>
+          <div>
+            <span class="tag">Zoom API</span>
+            <span class="tag">チャット連携</span>
+            <span class="tag">Google Calendar</span>
+            <span class="tag">launchd</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-stage">
+        <div class="flow-num">弐</div>
+        <div class="flow-content">
+          <h3>配信5分前、リマインダー自動送信</h3>
+          <p>「🟢 この後19:00から○○講座を開始します」が受講者チャット(Discord等)に自動投稿。@everyone 通知で受講生に確実に届く。Mac を触らなくても launchd cron が裏で動く。</p>
+          <div>
+            <span class="tag">launchd</span>
+            <span class="tag">Webhook</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-stage">
+        <div class="flow-num">参</div>
+        <div class="flow-content">
+          <h3>翌朝7:30、録画フル自動処理</h3>
+          <p>Zoomクラウドから録画DL → Claude Haiku で要約生成(主な内容/キーワード/持ち帰りポイント)→ Google Drive にバックアップ → YouTube 限定公開アップロード → 受講者チャットのアーカイブチャンネルに視聴URL投稿 → Obsidian Vault に整形版保存。</p>
+          <div>
+            <span class="tag">Zoom API</span>
+            <span class="tag">Claude Haiku</span>
+            <span class="tag">Google Drive</span>
+            <span class="tag">YouTube API</span>
+            <span class="tag">Obsidian</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-stage">
+        <div class="flow-num">肆</div>
+        <div class="flow-content">
+          <h3>あなたが朝起きたら、すべて完了している</h3>
+          <p>受講生は Discord でアーカイブ URL を受け取って復習開始。あなたは Obsidian で要約をチェックして次の配信準備に集中。手作業ゼロ。</p>
+          <div>
+            <span class="tag">完全自動</span>
+            <span class="tag">手作業ゼロ</span>
+            <span class="tag">冪等性</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="bg-cream-deep" id="persona">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">who is this for</span>
+      <h2 class="section-title"><span class="section-title-decorated">こんな人のためのパッケージ</span></h2>
+      <p class="section-lead">技術者じゃなくても使えます。docs/ に1ステップずつのガイド付き。</p>
+    </div>
+
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="icon">🎓</div>
+        <h3>オンライン講座運営者</h3>
+        <p>Zoom配信 → 録画ダウンロード → YouTubeアップロードを毎回手作業でやっていて、時間とエネルギーが奪われている方</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🌿</div>
+        <h3>コーチ・カウンセラー</h3>
+        <p>個別面談録画の整理に時間を取られがち。要約だけ Obsidian に残して、本体は Drive に自動保管したい方</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🤝</div>
+        <h3>コミュニティ運営者</h3>
+        <p>定例会の告知やリマインドを手で打っている。受講生数が増えても運営工数を増やしたくない方</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">📚</div>
+        <h3>講座コンテンツ提供者</h3>
+        <p>配信内容を後から検索・整理できる形(Obsidian + YouTube + Drive)で残しておきたい方</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🤖</div>
+        <h3>Claude Code ユーザー</h3>
+        <p>すでに Claude Code を使ってる、もしくは興味がある。AIに「お願いするだけ」のワークフローを体験したい方</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🍵</div>
+        <h3>「使い方」より「中身」</h3>
+        <p>技術ハック自体が好きじゃない。仕組みは整えて、自分は本業(コンテンツ作り・受講生対応)に集中したい方</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">features</span>
+      <h2 class="section-title"><span class="section-title-decorated">機能ハイライト</span></h2>
+      <p class="section-lead">12本のスクリプト + 2つの Claude Code Skill + 12本のセットアップガイド。</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">🎯</div>
+        <h3>テンプレで講座を分類</h3>
+        <p>「メインコース」「サブコース」「定例会」「個別セッション」など、自分の講座構造を JSON で自由に定義。トピック名で投稿先・YouTube アップ要否を自動判定。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📢</div>
+        <h3>チャットアプリ 3点セット連動</h3>
+        <p>事前告知(@everyone)+ 5分前リマインダー + アーカイブURL案内 を、受講者向けチャットアプリ(Discord等)のサーバー&チャンネル別に自動振り分け投稿。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📅</div>
+        <h3>イベント自動登録</h3>
+        <p>チャットアプリの「イベント」機能(Discord Scheduled Events)にも自動登録。受講生は「興味あり」を押せば開始時に通知が届く。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🤖</div>
+        <h3>Claude Haiku で要約生成</h3>
+        <p>OpenRouter 経由で動画1本約2円。一言サマリー / 主な内容 / キーワード / 持ち帰りポイントを構造化生成。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📺</div>
+        <h3>YouTube 限定公開UP</h3>
+        <p>speaker_view を限定公開でアップ。タイトル・説明・タグも要約から自動生成。個別面談系は自動除外。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📓</div>
+        <h3>Obsidian 整形版保存</h3>
+        <p>Vault の「文字起こし/Zoom/」に frontmatter + 要約 + 動画リンク3点を整形保存。後から検索・参照しやすく。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">☁️</div>
+        <h3>Google Drive バックアップ</h3>
+        <p>動画 + 字幕 + 要約 + メタ情報をフォルダごと自動バックアップ。冪等性あり、何度実行しても重複しない。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⏰</div>
+        <h3>launchd で完全自動</h3>
+        <p>毎朝7:30に未処理録画をフル自動処理。caffeinate ラップ済みでスリープ中も安全に完走。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🛡️</div>
+        <h3>個別面談は自動除外</h3>
+        <p>「面談 / コーチング / パーソナル / 1on1」キーワード入りトピックは YouTube アップから自動除外。プライバシー安全。</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔧</div>
+        <h3>使ってない機能は省略OK</h3>
+        <p>Discord / Obsidian / YouTube はどれも任意。<code>--no-discord</code> <code>--no-obsidian</code> <code>--no-youtube</code> オプションで個別スキップ可能。Slack や LINE 公式アカウント、Chatwork など Webhook 対応の他チャットアプリへの拡張も同じ仕組みで可能。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-cream-warm" id="usage">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">how to use</span>
+      <h2 class="section-title"><span class="section-title-decorated">使い方は2通り</span></h2>
+      <p class="section-lead">Claude Code 経由なら自然言語で。CLI 直叩きでもOK。</p>
+    </div>
+
+    <div class="chat-example">
+      <div class="chat-msg user">
+        <div class="chat-avatar">あ</div>
+        <div class="chat-bubble">
+          明日19:00から○○講座 第5回 ○○振り返りのZoom作って、補足メモは「ノートとお茶をご用意ください」で
+        </div>
+      </div>
+      <div class="chat-msg ai">
+        <div class="chat-avatar">🍵</div>
+        <div class="chat-bubble">
+          <strong>これで Zoom 作成します:</strong><br>
+          ▼ テンプレ: course1(90分)<br>
+          ▼ タイトル: 第5回 ○○振り返り<br>
+          ▼ 日時: 2026-07-15 19:00 JST<br>
+          ▼ 連動: Discord告知 + Event登録 + リマインダー予約 + カレンダー登録<br>
+          <br>
+          このまま実行していい?
+        </div>
+      </div>
+      <div class="chat-msg user">
+        <div class="chat-avatar">あ</div>
+        <div class="chat-bubble">OK進めて</div>
+      </div>
+      <div class="chat-msg ai">
+        <div class="chat-avatar">🍵</div>
+        <div class="chat-bubble">
+          <span class="check">✅ Zoom URL: https://us06web.zoom.us/j/...</span><br>
+          <span class="check">✅ Discord告知 → ○○講座サーバー</span><br>
+          <span class="check">✅ Event登録(イベントタブ)</span><br>
+          <span class="check">✅ 5分前リマインダー予約 → 18:55 JST</span><br>
+          <span class="check">✅ Googleカレンダー登録</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="usage-divider">~ 録画処理は「録画処理して」と言うだけ ~</div>
+
+    <div class="chat-example" style="margin-top: 24px;">
+      <div class="chat-msg user">
+        <div class="chat-avatar">あ</div>
+        <div class="chat-bubble">録画処理して</div>
+      </div>
+      <div class="chat-msg ai">
+        <div class="chat-avatar">🍵</div>
+        <div class="chat-bubble">
+          <strong>未処理の録画 2件、フル自動処理スタート</strong><br>
+          <span class="check">✅ DL → 要約 → Drive → YouTube → Discord案内 → Obsidian</span><br>
+          完了報告と新YouTube URL は完了次第お送りします。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-cream-deep" id="how-to-start">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">how to start</span>
+      <h2 class="section-title"><span class="section-title-decorated">セットアップは「プロンプト1個コピペ」</span></h2>
+      <p class="section-lead">ターミナル操作を覚える必要なし。Claude Code に起動プロンプトを貼るだけで、AI が対話で全部ガイドします。</p>
+    </div>
+
+    <div style="max-width: 820px; margin: 0 auto;">
+
+      <div style="background: var(--tea-paper); border-radius: 20px; padding: 36px; border: 1px solid var(--line); margin-bottom: 28px; box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="flex-shrink: 0; width: 48px; height: 48px; background: var(--plum-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--plum-deep); font-size: 18px;">壱</div>
+          <div>
+            <h3 style="font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--brown-deep); font-size: 19px; margin-bottom: 8px;">Claude Code をインストール</h3>
+            <p style="color: var(--text-mute); font-size: 14px; margin-bottom: 12px;">Anthropic 社が無料提供する AI アシスタント CLI。<br>持ってない方は↓のリンクからインストール:</p>
+            <a href="https://docs.claude.com/claude-code" target="_blank" rel="noopener" style="color: var(--plum-deep); font-weight: 700; font-size: 14px;">→ Claude Code 公式インストールガイド</a>
+            <p style="color: var(--text-mute); font-size: 13px; margin-top: 12px;">Mac の場合: <code>brew install --cask claude-code</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: var(--tea-paper); border-radius: 20px; padding: 36px; border: 1px solid var(--line); margin-bottom: 28px; box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="flex-shrink: 0; width: 48px; height: 48px; background: var(--plum-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--plum-deep); font-size: 18px;">弐</div>
+          <div>
+            <h3 style="font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--brown-deep); font-size: 19px; margin-bottom: 8px;">Claude Code を起動</h3>
+            <p style="color: var(--text-mute); font-size: 14px; margin-bottom: 12px;">Mac のターミナルアプリで <code>claude</code> と打ってエンター。AI とのチャットが始まります。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: var(--tea-paper); border-radius: 20px; padding: 36px; border: 1px solid var(--line); margin-bottom: 28px; box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="flex-shrink: 0; width: 48px; height: 48px; background: var(--plum-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--plum-deep); font-size: 18px;">参</div>
+          <div style="flex: 1;">
+            <h3 style="font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--brown-deep); font-size: 19px; margin-bottom: 8px;">セットアッププロンプトをコピペ</h3>
+            <p style="color: var(--text-mute); font-size: 14px; margin-bottom: 12px;">
+              <a href="https://github.com/yueji-tea/zoom-course-automation/blob/main/SETUP_PROMPT.md" target="_blank" rel="noopener" style="color: var(--plum-deep); font-weight: 700;">→ SETUP_PROMPT.md</a> を開く
+            </p>
+            <p style="color: var(--text-mute); font-size: 14px;">枠内のプロンプト全文をコピー → Claude Code に貼り付け → エンター。あとは AI が対話的にセットアップを進めます。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: var(--tea-paper); border-radius: 20px; padding: 36px; border: 1px solid var(--line); box-shadow: 0 8px 32px rgba(61, 40, 23, 0.06);">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="flex-shrink: 0; width: 48px; height: 48px; background: var(--matcha-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--matcha-deep); font-size: 18px;">肆</div>
+          <div>
+            <h3 style="font-family: 'Noto Serif JP', serif; font-weight: 900; color: var(--brown-deep); font-size: 19px; margin-bottom: 8px;">対話しながら進める</h3>
+            <p style="color: var(--text-mute); font-size: 14px; margin-bottom: 8px;">AI が API キー取得・テンプレ設定・動作確認まで1ステップずつガイド。</p>
+            <p style="color: var(--text-mute); font-size: 14px;">「わからない」「これスキップ」「Slack 連携にしたい」など、何でも相談OK。</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="setup">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">setup guide</span>
+      <h2 class="section-title"><span class="section-title-decorated">セットアップガイド 12本</span></h2>
+      <p class="section-lead">技術初心者でも進めるように、ひとつずつ丁寧に。順番に読めば迷わない。</p>
+    </div>
+
+    <div class="setup-list">
+      <div class="setup-item"><div class="setup-num">01</div><div class="setup-text"><h4>OVERVIEW</h4><p>このパッケージは何?何ができる?</p></div><span class="setup-time">5分</span></div>
+      <div class="setup-item"><div class="setup-num">02</div><div class="setup-text"><h4>PREREQUISITES</h4><p>必要な準備(Mac環境、各種ツール)</p></div><span class="setup-time">15分</span></div>
+      <div class="setup-item"><div class="setup-num">03</div><div class="setup-text"><h4>ZOOM_API_SETUP</h4><p>Zoom Server-to-Server OAuth 設定</p></div><span class="setup-time">10分</span></div>
+      <div class="setup-item"><div class="setup-num">04</div><div class="setup-text"><h4>OPENROUTER_SETUP</h4><p>OpenRouter APIキー取得 + $5 チャージ</p></div><span class="setup-time">5分</span></div>
+      <div class="setup-item"><div class="setup-num">05</div><div class="setup-text"><h4>DISCORD_BOT_SETUP</h4><p>Discord Bot 作成 + サーバー招待</p></div><span class="setup-time">10分</span></div>
+      <div class="setup-item"><div class="setup-num">06</div><div class="setup-text"><h4>DISCORD_WEBHOOK_SETUP</h4><p>Discord Webhook URL 取得</p></div><span class="setup-time">5分</span></div>
+      <div class="setup-item"><div class="setup-num">07</div><div class="setup-text"><h4>GOOGLE_OAUTH_SETUP</h4><p>Google Cloud + gog CLI セットアップ</p></div><span class="setup-time">15分</span></div>
+      <div class="setup-item"><div class="setup-num">08</div><div class="setup-text"><h4>YOUTUBE_API_SETUP</h4><p>YouTube Data API + OAuth フロー</p></div><span class="setup-time">10分</span></div>
+      <div class="setup-item"><div class="setup-num">09</div><div class="setup-text"><h4>OBSIDIAN_SETUP</h4><p>Obsidian Vault 連携(任意・スキップ可)</p></div><span class="setup-time">5分</span></div>
+      <div class="setup-item"><div class="setup-num">10</div><div class="setup-text"><h4>LAUNCHD_SETUP</h4><p>毎朝自動実行(完全自動運用)</p></div><span class="setup-time">10分</span></div>
+      <div class="setup-item"><div class="setup-num">11</div><div class="setup-text"><h4>CUSTOMIZATION</h4><p>テンプレ・ルーティング・Skill のカスタマイズ</p></div><span class="setup-time">10分</span></div>
+      <div class="setup-item"><div class="setup-num">12</div><div class="setup-text"><h4>TROUBLESHOOTING</h4><p>よくあるトラブルと解決方法</p></div><span class="setup-time">読みもの</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-cream-deep" id="tech">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">tech stack</span>
+      <h2 class="section-title"><span class="section-title-decorated">技術スタック</span></h2>
+      <p class="section-lead">外部依存を最小化、Python 3 標準ライブラリのみで動く。</p>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="icon">🐍</div>
+        <div class="label">Python 3</div>
+        <div class="desc">標準ライブラリのみ、追加 pip 不要</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">🤖</div>
+        <div class="label">Claude Haiku 4.5</div>
+        <div class="desc">OpenRouter経由 or Anthropic直接</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">🎥</div>
+        <div class="label">Zoom S2S OAuth</div>
+        <div class="desc">無料・自動更新</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">💬</div>
+        <div class="label">Discord Bot + Webhook</div>
+        <div class="desc">Scheduled Events + 告知</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">📊</div>
+        <div class="label">Google Workspace</div>
+        <div class="desc">Drive / Calendar / YouTube</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">⏰</div>
+        <div class="label">macOS launchd</div>
+        <div class="desc">毎朝自動実行 + リマインダー</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">🧠</div>
+        <div class="label">Claude Code Skill</div>
+        <div class="desc">自然言語からの起動</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">📓</div>
+        <div class="label">Obsidian Vault</div>
+        <div class="desc">ローカル保管・整形版MD</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <span class="section-eyebrow">join us</span>
+    <h2>講座運営の手作業から、<br>解放されよう。</h2>
+    <p class="cta-lead">あなたが本当にやりたいのは、コンテンツを磨くこと・受講生と向き合うこと。<br>仕組み作業は AI と自動化スクリプトに任せて、もっと大切なことに時間を使う。</p>
+    <a class="btn-cta" href="https://github.com/yueji-tea/zoom-course-automation" target="_blank" rel="noopener">GitHub で見る → 今すぐ始める</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-brand">🍵 zoom-course-automation</div>
+  <div class="footer-links">
+    <a href="https://github.com/yueji-tea/zoom-course-automation" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/yueji-tea/zoom-course-automation/blob/main/README.md" target="_blank" rel="noopener">README</a>
+    <a href="https://github.com/yueji-tea/zoom-course-automation/tree/main/docs" target="_blank" rel="noopener">セットアップガイド</a>
+    <a href="https://github.com/yueji-tea/zoom-course-automation/blob/main/LICENSE" target="_blank" rel="noopener">MITライセンス</a>
+    <a href="https://github.com/yueji-tea/zoom-course-automation/issues" target="_blank" rel="noopener">Issues</a>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-copyright">
+    Created by ゆえじ × Claude Code, 2026年6月<br>
+    このパッケージは、お茶講座「茶養」運営の手作業を汎用化したもの。<br>同業の方の役に立てば嬉しいです。
+  </div>
+</footer>
+
+</body>
+</html>
