@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import base64
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timedelta
@@ -31,7 +32,7 @@ def load_env(env_path):
     return env
 
 
-ENV_PATH = Path.home() / "transcribe" / "_scripts" / ".env"
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 env = load_env(ENV_PATH)
 
 ACCOUNT_ID = env["ZOOM_ACCOUNT_ID"]

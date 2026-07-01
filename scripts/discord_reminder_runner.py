@@ -17,7 +17,8 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 
-SCRIPTS_DIR = Path.home() / "transcribe" / "_scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = SCRIPTS_DIR.parent / "config"
 ENV_PATH = SCRIPTS_DIR / ".env"
 PENDING_REMINDERS_PATH = SCRIPTS_DIR / "discord_reminders_pending.json"
 LOG_DIR = Path.home() / "transcribe" / "_logs"

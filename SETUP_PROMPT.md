@@ -44,7 +44,7 @@
 
 ▼ Step 2: API キー取得(順番に1個ずつ)
 以下のサービス順に、私の状態に応じて取得を案内。
-取得した値はその都度 ~/zoom-course-automation/scripts/.env に書き込んでください(チェック用に長さも表示)。
+取得した値はその都度 ~/zoom-course-automation/scripts/.env に書き込んでください(チェック用に長さも表示)。★ .env に書き込んだ直後に必ず `chmod 600 ~/zoom-course-automation/scripts/.env` を実行してパーミッションを本人のみ読み書き可に固定してください(他ユーザー・iCloud同期経由の漏洩防止)。
 
 a. Zoom Server-to-Server OAuth(必須)
    - https://marketplace.zoom.us/develop/create を開かせて、Server-to-Server OAuth アプリを作成

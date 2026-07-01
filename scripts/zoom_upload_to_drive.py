@@ -21,6 +21,7 @@
 - 動画(MP4)・字幕(VTT/TXT)・要約(MD)・メタ情報(JSON)を全部アップ
 - 失敗時は2回までリトライ
 """
+import os
 import re
 import sys
 import json

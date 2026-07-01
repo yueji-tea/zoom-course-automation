@@ -22,7 +22,33 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-OBSIDIAN_VAULT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "")).expanduser() if os.environ.get("OBSIDIAN_VAULT_PATH") else None
+def load_env(env_path=ENV_PATH):
+    env = {}
+    if not env_path.exists():
+        return env
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                k, v = line.split("=", 1)
+                env[k.strip()] = v.strip().strip('"').strip("'")
+    return env
+
+
+_ENV_CACHE = load_env()
+
+
+def _env_or_dotenv(key, default=""):
+    """os.environ を優先、なければ .env から読む"""
+    v = os.environ.get(key)
+    if v:
+        return v
+    return _ENV_CACHE.get(key, default)
+
+
+OBSIDIAN_VAULT = Path(_env_or_dotenv("OBSIDIAN_VAULT_PATH")).expanduser() if _env_or_dotenv("OBSIDIAN_VAULT_PATH") else None
 OBSIDIAN_ZOOM_DIR = None  # main内で OBSIDIAN_VAULT 確認後に設定
 
 
@@ -142,7 +168,7 @@ def main():
 
     # 保存先決定
     global OBSIDIAN_ZOOM_DIR
-    OBSIDIAN_ZOOM_DIR = OBSIDIAN_VAULT / os.environ.get("OBSIDIAN_ZOOM_SUBDIR", "Transcripts/Zoom")
+    OBSIDIAN_ZOOM_DIR = OBSIDIAN_VAULT / _env_or_dotenv("OBSIDIAN_ZOOM_SUBDIR", "Transcripts/Zoom")
     OBSIDIAN_ZOOM_DIR.mkdir(parents=True, exist_ok=True)
     out_filename = build_obsidian_filename(local_dir.name, topic)
     out_path = OBSIDIAN_ZOOM_DIR / out_filename

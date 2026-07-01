@@ -10,7 +10,7 @@
         --at "2026-07-15 19:00"
 
     # 所要時間上書き(分)
-    python3 ~/transcribe/_scripts/zoom_create_meeting.py kobetsu "ゆきこさん面談" --duration 90
+    python3 ~/transcribe/_scripts/zoom_create_meeting.py kobetsu "○○さん面談" --duration 90
 
     # 利用可能なテンプレ一覧
     python3 ~/transcribe/_scripts/zoom_create_meeting.py --list
@@ -33,9 +33,10 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 
-SCRIPTS_DIR = Path.home() / "transcribe" / "_scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = SCRIPTS_DIR.parent / "config"
 ENV_PATH = SCRIPTS_DIR / ".env"
-TEMPLATES_PATH = SCRIPTS_DIR / "zoom_meeting_templates.json"
+TEMPLATES_PATH = CONFIG_DIR / "zoom_meeting_templates.json"
 
 
 def load_env():

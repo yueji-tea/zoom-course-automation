@@ -25,7 +25,7 @@ import http.server
 import threading
 from pathlib import Path
 
-ENV_PATH = Path.home() / "transcribe" / "_scripts" / ".env"
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 # YouTube アップロードに必要なスコープ
 SCOPES = [
@@ -79,6 +79,7 @@ class CallbackHandler(http.server.BaseHTTPRequestHandler):
     """OAuth リダイレクト先(localhost:PORT/callback)を受け取る"""
     received_code = None
     received_error = None
+    expected_state = None  # main() で乱数を設定してCSRF検証
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -87,6 +88,19 @@ class CallbackHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return
         params = urllib.parse.parse_qs(parsed.query)
+
+        # ★ state パラメータ検証(CSRF対策)
+        received_state = params.get("state", [""])[0]
+        if not received_state or received_state != CallbackHandler.expected_state:
+            CallbackHandler.received_error = "invalid_state (CSRF検証失敗)"
+            self.send_response(400)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(
+                "<h1>エラー</h1><p>state パラメータが一致しません(CSRF検証失敗)。</p>".encode("utf-8")
+            )
+            return
+
         if "code" in params:
             CallbackHandler.received_code = params["code"][0]
             self.send_response(200)
@@ -130,6 +144,11 @@ def main():
     port = find_free_port()
     redirect_uri = f"http://127.0.0.1:{port}/callback"
 
+    # ★ CSRF対策の state トークン生成(暗号学的乱数)
+    import secrets
+    state_token = secrets.token_urlsafe(32)
+    CallbackHandler.expected_state = state_token
+
     auth_params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
@@ -137,6 +156,7 @@ def main():
         "scope": " ".join(SCOPES),
         "access_type": "offline",
         "prompt": "consent",  # 必ず refresh_token を返してもらう
+        "state": state_token,  # CSRF検証用
     }
     auth_url = "https://accounts.google.com/o/oauth2/auth?" + urllib.parse.urlencode(auth_params)
 
@@ -191,6 +211,11 @@ def main():
         sys.exit(1)
 
     append_or_update_env(ENV_PATH, "YOUTUBE_REFRESH_TOKEN", refresh_token)
+    # ★ .env のパーミッションを 600 に強制(他ユーザー閲覧防止)
+    try:
+        os.chmod(ENV_PATH, 0o600)
+    except OSError:
+        pass
     print(f"✅ YOUTUBE_REFRESH_TOKEN を .env に保存(長さ:{len(refresh_token)})")
     print(f"   有効期限:基本的に永続(ユーザーが認証を取り消すまで)")
     print(f"\n以降は zoom_upload_to_youtube.py で動画アップロードできます。")

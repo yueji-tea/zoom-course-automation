@@ -39,7 +39,7 @@ def load_env(env_path):
     return env
 
 
-ENV_PATH = Path.home() / "transcribe" / "_scripts" / ".env"
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 env = load_env(ENV_PATH)
 
 ACCOUNT_ID = env["ZOOM_ACCOUNT_ID"]
@@ -111,7 +111,17 @@ def safe_topic(text):
     return text.strip().replace(" ", "_")[:60] or "no_topic"
 
 
+def _verify_zoom_download_url(url):
+    """Zoom API から返る download_url が Zoom 公式ドメインか検証(Bearer Token 漏洩防止)"""
+    from urllib.parse import urlparse
+    host = urlparse(url).netloc.lower()
+    ok_suffixes = ("zoom.us", "zoomgov.com", "zoom.com")
+    if not any(host == s or host.endswith("." + s) for s in ok_suffixes):
+        raise ValueError(f"download_url が Zoom 公式ドメインでない: {host}")
+
+
 def download_file(url, token, dest, expected_size=0):
+    _verify_zoom_download_url(url)
     is_tty = sys.stdout.isatty()
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
     with urllib.request.urlopen(req) as resp, open(dest, "wb") as f:

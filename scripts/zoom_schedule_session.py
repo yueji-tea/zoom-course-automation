@@ -28,6 +28,7 @@ import sys
 import json
 import argparse
 import subprocess
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timedelta, timezone
@@ -35,9 +36,10 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 
-SCRIPTS_DIR = Path.home() / "transcribe" / "_scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = SCRIPTS_DIR.parent / "config"
 ENV_PATH = SCRIPTS_DIR / ".env"
-TEMPLATES_PATH = SCRIPTS_DIR / "zoom_meeting_templates.json"
+TEMPLATES_PATH = CONFIG_DIR / "zoom_meeting_templates.json"
 PENDING_REMINDERS_PATH = SCRIPTS_DIR / "discord_reminders_pending.json"
 def _load_env_value(key, default=""):
     """ENV_PATH から1つのキー値を読む(モジュール初期化用)"""

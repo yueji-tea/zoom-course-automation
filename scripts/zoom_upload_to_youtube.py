@@ -32,12 +32,24 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 
-ENV_PATH = Path.home() / "transcribe" / "_scripts" / ".env"
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 # YouTubeカテゴリ ID 22 = People & Blogs
 DEFAULT_CATEGORY = "22"
 # DEFAULT_TAGS は .env の YOUTUBE_DEFAULT_TAGS (カンマ区切り) から読む
-DEFAULT_TAGS = [t.strip() for t in os.environ.get("YOUTUBE_DEFAULT_TAGS", "").split(",") if t.strip()] or ["講座", "アーカイブ"]
+def _get_default_tags():
+    tags_str = os.environ.get("YOUTUBE_DEFAULT_TAGS", "")
+    if not tags_str:
+        # .env から fallback
+        try:
+            _env = load_env(ENV_PATH)
+            tags_str = _env.get("YOUTUBE_DEFAULT_TAGS", "")
+        except Exception:
+            pass
+    return [t.strip() for t in tags_str.split(",") if t.strip()] or ["講座", "アーカイブ"]
+
+
+DEFAULT_TAGS = _get_default_tags()
 
 
 def load_env(env_path):

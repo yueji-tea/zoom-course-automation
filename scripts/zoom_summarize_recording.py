@@ -34,7 +34,7 @@ def load_env(env_path):
     return env
 
 
-ENV_PATH = Path.home() / "transcribe" / "_scripts" / ".env"
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 env = load_env(ENV_PATH)
 
 # API選択: ANTHROPIC_API_KEY があれば直 / なければ OPENROUTER_API_KEY 経由
@@ -52,8 +52,8 @@ elif OPENROUTER_KEY:
 else:
     PROVIDER = None
 
-_COURSE_NAME = os.environ.get("COURSE_NAME", "オンライン講座")
-_HOST_NAME = os.environ.get("COURSE_HOST_NAME", "")
+_COURSE_NAME = os.environ.get("COURSE_NAME") or env.get("COURSE_NAME", "オンライン講座")
+_HOST_NAME = os.environ.get("COURSE_HOST_NAME") or env.get("COURSE_HOST_NAME", "")
 SYSTEM_PROMPT = f"""あなたは {_COURSE_NAME}{(f" (主宰: {_HOST_NAME})" if _HOST_NAME else "")} の運営アシスタントです。
 受講者向けに、Zoom録画アーカイブの「視聴前に見る要約」を書きます。
 

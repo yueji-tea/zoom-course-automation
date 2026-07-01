@@ -44,7 +44,8 @@ import base64
 from datetime import datetime, timedelta
 from pathlib import Path
 
-SCRIPTS_DIR = Path.home() / "transcribe" / "_scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = SCRIPTS_DIR.parent / "config"
 RECORDINGS_DIR = Path.home() / "transcribe" / "zoom_recordings"
 LOG_DIR = Path.home() / "transcribe" / "_logs"
 ENV_PATH = SCRIPTS_DIR / ".env"

@@ -22,10 +22,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-SCRIPTS_DIR = Path.home() / "transcribe" / "_scripts"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+CONFIG_DIR = SCRIPTS_DIR.parent / "config"
 ENV_PATH = SCRIPTS_DIR / ".env"
 DISCORD_POST = SCRIPTS_DIR / "discord_post.sh"
-ROUTES_PATH = SCRIPTS_DIR / "youtube_archive_discord_routes.json"
+ROUTES_PATH = CONFIG_DIR / "youtube_archive_discord_routes.json"
 
 
 def load_env():
@@ -158,10 +159,12 @@ def post_to_discord(webhook, message, dry_run=False):
         print("=== DRY RUN: Discord投稿本文 ===")
         print(message)
         return
+    # ★ Webhook URL は環境変数経由(argv 経由の ps 漏洩を防止)
     env = os.environ.copy()
     env["DISCORD_USERNAME"] = env.get("DISCORD_USERNAME", "ArchiveBot")
+    env["DISCORD_WEBHOOK"] = webhook  # ← argv ではなく env に置く
     result = subprocess.run(
-        [str(DISCORD_POST), webhook, message],
+        [str(DISCORD_POST), message],
         capture_output=True,
         text=True,
         env=env,
